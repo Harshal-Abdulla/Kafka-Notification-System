@@ -1,2 +1,4 @@
 kafka-python==3.0.10
 psycopg2-binary==2.9.12
+python-dotenv==1.2.3
+redis==8.1.0

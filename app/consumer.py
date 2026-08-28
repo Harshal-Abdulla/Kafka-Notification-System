@@ -1,6 +1,8 @@
+import redis
 from config import POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT
 import psycopg2
 from kafka import KafkaConsumer
+from config import REDIS_HOST, REDIS_PORT
 
 
 
@@ -13,7 +15,11 @@ conn = psycopg2.connect(
     password = POSTGRES_PASSWORD,
     port = POSTGRES_PORT
 )
-
+redis_conn = redis.Redis(
+    host = REDIS_HOST,
+    port = REDIS_PORT,
+    decode_responses=True
+)
 cur = conn.cursor()
 
 consumer = KafkaConsumer(
