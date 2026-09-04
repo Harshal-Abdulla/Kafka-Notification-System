@@ -25,7 +25,11 @@ cur = conn.cursor()
 consumer = KafkaConsumer(
     'notifications',
     bootstrap_servers='localhost:9092')
-
+# temporary test hook
+def send_notification(text):
+    if text == "237ec462-5d82-4e31-b1b8-c291873b92bf":
+        return False
+    return True
 
 for message in consumer:
     text = message.value.decode()
@@ -41,9 +45,15 @@ for message in consumer:
         status = row[0]
         if status == 'PENDING':
             print("delivering")
-            cur.execute(
+            if send_notification(text):
+                cur.execute(
                 "UPDATE notification SET status = %s WHERE notification_id = %s", ('SENT', text)
-            )
-            conn.commit()
+                )
+                conn.commit()
+                print("delivering success")
+            else:
+                print( 'delivering failed' )            
         elif status == 'SENT':
             print("already sent, skipping")
+
+   
