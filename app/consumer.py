@@ -3,6 +3,7 @@ from config import POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB,
 import psycopg2
 from kafka import KafkaConsumer, KafkaProducer
 from config import REDIS_HOST, REDIS_PORT
+import time
 
 
 
@@ -55,7 +56,7 @@ for message in consumer:
             else:
                 key = f"retry:{notification_id}"
                 retry_count = redis_conn.incr(key)  
-                if retry_count >= 3:
+                if retry_count >= 6:
                     print("moving to DLQ")
                     dlq_producer.send('notifications-dlq', notification_id.encode())
                     dlq_producer.flush()
@@ -66,6 +67,9 @@ for message in consumer:
 
                 else:
                     print("failed again")
+                    wait = 2 ** (retry_count - 1)
+                    print(wait)
+                    time.sleep(wait)
                     dlq_producer.send('notifications', notification_id.encode())
                     dlq_producer.flush()
         elif status == 'SENT':
