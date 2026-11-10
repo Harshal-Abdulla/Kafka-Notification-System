@@ -25,7 +25,9 @@ cur = conn.cursor()
 
 consumer = KafkaConsumer(
     'notifications',
-    bootstrap_servers=KAFKA_BOOTSTRAP)
+    bootstrap_servers=KAFKA_BOOTSTRAP,
+    group_id = 'notification-workers',
+    auto_offset_reset = 'earliest')
 print("consumer ready, waiting for messages")
 
 dlq_producer = KafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
