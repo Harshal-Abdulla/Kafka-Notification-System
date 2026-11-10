@@ -10,3 +10,5 @@ POSTGRES_PORT = int(os.getenv("POSTGRES_PORT"))
 
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = int(os.getenv("REDIS_PORT"))
+
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP")

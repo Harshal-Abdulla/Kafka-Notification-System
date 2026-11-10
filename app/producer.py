@@ -1,4 +1,4 @@
-from config import POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT
+from config import POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT, KAFKA_BOOTSTRAP
 import uuid
 import psycopg2
 from kafka import KafkaProducer
@@ -22,6 +22,6 @@ cur.execute(
 conn.commit()
 
 s_byte = uid.encode()
-producer = KafkaProducer(bootstrap_servers='localhost:9092')
+producer = KafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
 producer.send('notifications', s_byte)
 producer.flush()

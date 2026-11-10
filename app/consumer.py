@@ -2,7 +2,7 @@ import redis
 from config import POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, POSTGRES_PORT
 import psycopg2
 from kafka import KafkaConsumer, KafkaProducer
-from config import REDIS_HOST, REDIS_PORT
+from config import REDIS_HOST, REDIS_PORT, KAFKA_BOOTSTRAP
 import time
 
 
@@ -25,10 +25,10 @@ cur = conn.cursor()
 
 consumer = KafkaConsumer(
     'notifications',
-    bootstrap_servers='localhost:9092')
+    bootstrap_servers=KAFKA_BOOTSTRAP)
 print("consumer ready, waiting for messages")
 
-dlq_producer = KafkaProducer(bootstrap_servers='localhost:9092')
+dlq_producer = KafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
 # temporary test hook
 def send_notification(notification_id):
     return True
