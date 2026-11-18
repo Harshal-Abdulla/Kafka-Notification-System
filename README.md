@@ -2,6 +2,8 @@
 
 A notification pipeline in Python that keeps working when things fail: a consumer that crashes, a send that fails, or a message that Kafka delivers twice. Built with Kafka, PostgreSQL, Redis and Docker Compose.
 
+**Status: finished.** Delivery, the idempotent status check, retries with exponential backoff (1, 2, 4, 8, 16 s), the dead letter topic and crash recovery through the consumer group all work and are tested from a clean start (`docker compose down -v`). The next steps are listed under Known limitations.
+
 ## How it works
 
 ```mermaid
@@ -25,22 +27,22 @@ flowchart LR
 
 ## Why each piece is there
 
-| Piece | Job | What happens if it's lost |
-|---|---|---|
-| PostgreSQL | Source of truth for every notification's status | The system can't know what was sent, so it must be durable |
-| Kafka | Decouples the producer from the consumer and buffers messages while the consumer is down | Messages are stored on disk, so they wait instead of disappearing |
-| Redis | Fast retry counter | The count resets, so a notification may get a few extra retries. The final status is still correct |
-| Consumer group `notification-workers` | Kafka saves the consumer's position (offset) under this name | Without it, a restarted consumer starts at the newest message and skips anything sent while it was down |
+| Piece                                 | Job                                                                                      | What happens if it's lost                                                                               |
+| ------------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| PostgreSQL                            | Source of truth for every notification's status                                          | The system can't know what was sent, so it must be durable                                              |
+| Kafka                                 | Decouples the producer from the consumer and buffers messages while the consumer is down | Messages are stored on disk, so they wait instead of disappearing                                       |
+| Redis                                 | Fast retry counter                                                                       | The count resets, so a notification may get a few extra retries. The final status is still correct      |
+| Consumer group `notification-workers` | Kafka saves the consumer's position (offset) under this name                             | Without it, a restarted consumer starts at the newest message and skips anything sent while it was down |
 
 ## Failure cases
 
-| What fails | What happens |
-|---|---|
-| The consumer is down when a notification is sent | The message waits in Kafka. When the consumer restarts, it resumes from its last saved offset and delivers it |
-| Kafka delivers the same message again | The consumer sees `SENT` in PostgreSQL and skips it |
-| The send fails | Retried up to five times with backoff (about 31 seconds in total), then moved to the dead letter topic and marked `FAILED` |
-| Redis restarts and loses the counter | Retries count from 1 again. More attempts, same final result |
-| An id arrives with no matching row | Logged and skipped |
+| What fails                                       | What happens                                                                                                               |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| The consumer is down when a notification is sent | The message waits in Kafka. When the consumer restarts, it resumes from its last saved offset and delivers it              |
+| Kafka delivers the same message again            | The consumer sees `SENT` in PostgreSQL and skips it                                                                        |
+| The send fails                                   | Retried up to five times with backoff (about 31 seconds in total), then moved to the dead letter topic and marked `FAILED` |
+| Redis restarts and loses the counter             | Retries count from 1 again. More attempts, same final result                                                               |
+| An id arrives with no matching row               | Logged and skipped                                                                                                         |
 
 ## Known limitations
 
